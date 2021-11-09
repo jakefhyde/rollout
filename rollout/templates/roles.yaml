@@ -1,0 +1,28 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: rollout-{{ .Release.Namespace }}-{{ .Values.targetDeployment }}-role
+subjects:
+- kind: ServiceAccount
+  name: rollout-{{ .Release.Namespace }}-{{ .Values.targetDeployment }}-role
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: rollout-{{ .Release.Namespace }}-{{ .Values.targetDeployment }}-role
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rollout-{{ .Release.Namespace }}-{{ .Values.targetDeployment }}-role
+rules:
+ - apiGroups: ["apps", "extensions"]
+   resources: ["deployments"]
+   resourceNames: ["{{ .Values.targetDeployment }}"]
+   verbs: ["get", "patch", "list"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rollout-{{ .Release.Namespace }}-{{ .Values.targetDeployment }}-role
+  namespace: {{ .Release.Namespace }}

@@ -1,0 +1,47 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: rollout-{{ .Release.Namespace }}-{{ regexReplaceAll "\\W+" .Values.targetImage "-" }}
+spec:
+  schedule: "{{ .Values.schedule }}"
+  successfulJobsHistoryLimit: {{ .Values.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: rollout-{{ .Release.Namespace }}-{{ regexReplaceAll "\\W+" .Values.targetImage "-" }}
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: "IMAGE"
+              value: "{{ .Values.targetImage }}"
+            - name: "NAMESPACE"
+              value: "{{ .Release.Namespace }}"
+            - name: "DEPLOYMENT"
+              value: "{{ .Values.targetDeployment }}"
+            volumeMounts:
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+            - name: dockershim-sock
+              mountPath: /var/run/dockershim.sock
+            - name: containerd-sock
+              mountPath: /run/containerd/containerd.sock
+            - name: docker-directory
+              mountPath: /var/lib/docker
+          restartPolicy: OnFailure
+          serviceAccountName: rollout-{{ .Release.Namespace }}-{{ .Values.targetDeployment }}-role
+          volumes:
+          - name: docker-sock
+            hostPath:
+              path: "/var/run/docker.sock"
+          - name: dockershim-sock
+            hostPath:
+              path: "/var/run/dockershim.sock"
+          - name: containerd-sock
+            hostPath:
+              path: "/run/containerd/containerd.sock"
+          - name: docker-directory
+            hostPath:
+              path: "/var/lib/docker"

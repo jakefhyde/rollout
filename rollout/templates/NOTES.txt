@@ -1,0 +1,3 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your {{ .Values.targetDeployment }} deployment in the {{ .Release.Namespace }} namespace should automatically be redeployed within one minute of a new {{ .Values.targetImage }} image.

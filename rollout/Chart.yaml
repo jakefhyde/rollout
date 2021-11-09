@@ -1,0 +1,6 @@
+apiVersion: v2
+name: rollout
+description: Automatically force update a kubernetes deployment if a new image is present based on a timed interval.
+type: application
+version: 0.1.0
+appVersion: "v0.1.2"

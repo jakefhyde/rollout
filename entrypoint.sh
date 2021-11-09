@@ -1,25 +1,19 @@
 #!/bin/bash
 
-INTERVAL=60
-DOCKER_IMAGE=$REPO:$VERSION
+kubectl version
 
-while true;
-do
+kubectl -n $NAMESPACE rollout status deploy/$DEPLOYMENT
 
-OLD=$(docker inspect --format='{{index .RepoDigests 0}}' $DOCKER_IMAGE)
+OLD=$(crictl inspecti -o go-template --template='{{index .status "repoDigests" 0}}' $IMAGE)
 
-docker pull $DOCKER_IMAGE
+crictl pull $IMAGE
 
-NEW=$(docker inspect --format='{{index .RepoDigests 0}}' $DOCKER_IMAGE)
+NEW=$(crictl inspecti -o go-template --template='{{index .status "repoDigests" 0}}' $IMAGE)
 
 if [ "${OLD,,}" == "${NEW,,}" ]; then
     echo "Up to date. Skipping..."
 else
-    echo "Updating Rancher:${OLD} to ${NEW}"
+    echo "Updating $DEPLOYMENT from ${OLD} to ${NEW}"
 
-    kubectl -n $NAMESPACE rollout restart $DEPLOYMENT
+    kubectl -n $NAMESPACE rollout restart deploy/$DEPLOYMENT
 fi
-
-sleep $INTERVAL
-
-done
